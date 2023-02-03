@@ -1,11 +1,13 @@
 <!-- 
 SPDX-FileCopyrightText: 2022 Sidings Media <contact@sidingsmedia.com>
+SPDX-FileCopyrightText: 2023 Matthew Nickson <mnickson@sidingsmedia.com>
 SPDX-License-Identifier: MIT
 -->
 
-# Project name
+# Network Clock
 
-A description of what this project is and what it does
+A small 7 segment display clock that uses NTP servers to synchronise
+it's time all build around the ESP8266 
 
 ## Licence
 This repo uses the [REUSE](https://reuse.software) standard in order to
