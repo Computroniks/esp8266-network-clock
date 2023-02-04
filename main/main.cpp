@@ -9,17 +9,43 @@
 
 #include "timekeeping/clock.hpp"
 
-extern "C" void app_main() {
-    ESP_LOGI("STARTUP", "%s %s", PROJECT_NAME, PROJECT_VERSION);
-    ESP_LOGI("STARTUP", "Compiled %s %s", __DATE__, __TIME__);
+#define LOGGING_TAG "STARTUP"
 
-    // Log chip info
-    esp_chip_info_t chip_info;
-    esp_chip_info(&chip_info);
-    ESP_LOGI("APP_MAIN", "This is an ESP8266 chip with %d CPU cores", chip_info.cores);
-    ESP_LOGI("APP_MAIN", "Silicon revision %d", chip_info.revision);
-    ESP_LOGI("APP_MAIN", "%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
-        (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
+
+// Output system information to the logging interface
+void show_startup_info() {
+    const char tag[] = "STARTUP";
+    // Firmware info
+    ESP_LOGI(tag, "%s %s", PROJECT_NAME, PROJECT_VERSION);
+    ESP_LOGI(tag, "Compiled %s %s", __DATE__, __TIME__);
+    ESP_LOGI(tag, "Repository %s\n", PROJECT_REPO);
+
+    // IC Info
+    esp_chip_info_t chip;
+    esp_chip_info(&chip);
+    ESP_LOGI(tag, "Model: %s", (chip.model == CHIP_ESP8266) ? "ESP8266" : "ESP32");
+    ESP_LOGI(tag, "Silicon revision: %d", chip.revision);
+    ESP_LOGI(tag, "Cores: %d\n", chip.cores);
+
+    // Chip features
+    ESP_LOGI(tag, "Features:");
+    ESP_LOGI(tag, "Embedded flash: %s", (chip.features & CHIP_FEATURE_EMB_FLASH) ? "Yes" : "No");
+    ESP_LOGI(tag, "2.4GHz WiFi: %s", (chip.features & CHIP_FEATURE_WIFI_BGN) ? "Yes" : "No");
+    ESP_LOGI(tag, "Bluetooth LE: %s", (chip.features & CHIP_FEATURE_BLE) ? "Yes" : "No");
+    ESP_LOGI(tag, "Bluetooth Classic: %s\n", (chip.features & CHIP_FEATURE_BT) ? "Yes" : "No");
+
+    // MAC addresses
+    unsigned char mac[8];
+    esp_efuse_mac_get_default(mac);
+    ESP_LOGI(tag, "MAC Address: %02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+    // Flash Info
+    ESP_LOGI(tag, "%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
+        (chip.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
+}
+
+extern "C" void app_main() {
+    show_startup_info();
     timekeeping::Clock clock(1675512811);
     for (int i = 10; i >= 0; i--) {
         ESP_LOGI("APP_MAIN", "Restarting in %d seconds...\n", i);

@@ -17,4 +17,5 @@ add_compile_definitions(
     PROJECT_VERSION_PATCH=${PRJ_VERSION_PATCH}
     PROJECT_VERSION="${PRJ_VERSION}"
     PROJECT_NAME="${PRJ_NAME}"
+    PROJECT_REPO="https://github.com/Computroniks/esp8266-network-clock.git"
 )
