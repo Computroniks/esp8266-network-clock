@@ -16,17 +16,20 @@ namespace timekeeping {
         // Start the clock at the given time
         Clock(time_t time);
 
-        // Get the current hour value of the clock
+        // Get the hour value of the clock.
+        // To get the current hour, first make sure to update the
+        // clock by calling Now()
         int Hour();
 
-        // Get the current minute value of the clock
+        // Get the minute value of the clock. 
+        // To get the current minute, first make sure to update the
+        // clock by calling Now()
         int Minute();
 
-        // Get the current second value of the clock
+        // Get the second value of the clock
+        // To get the current second, first make sure to update the
+        // clock by calling Now()
         int Second();
-
-        // Get the current millisecond value of the clock
-        int MilliSecond();
 
         // Set the clock to a given time
         void Set(time_t time);
