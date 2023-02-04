@@ -25,7 +25,8 @@ void show_startup_info() {
     esp_chip_info(&chip);
     ESP_LOGI(tag, "Model: %s", (chip.model == CHIP_ESP8266) ? "ESP8266" : "ESP32");
     ESP_LOGI(tag, "Silicon revision: %d", chip.revision);
-    ESP_LOGI(tag, "Cores: %d\n", chip.cores);
+    ESP_LOGI(tag, "Cores: %d", chip.cores);
+    ESP_LOGI(tag, "Crystal: %dMHz\n", CRYSTAL_USED);
 
     // Chip features
     ESP_LOGI(tag, "Features:");
