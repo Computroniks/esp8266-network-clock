@@ -4,4 +4,4 @@
 cmake_minimum_required(VERSION 3.10)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(network-clock VERSION 0.1.0)
+project("network_clock" VERSION 0.1.0)
