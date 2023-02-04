@@ -9,9 +9,6 @@
 
 #include "timekeeping/clock.hpp"
 
-#define LOGGING_TAG "STARTUP"
-
-
 // Output system information to the logging interface
 void show_startup_info() {
     const char tag[] = "STARTUP";
