@@ -5,38 +5,44 @@
 
 #include <time.h>
 
+#include "esp_log.h"
 #include "esp_timer.h"
+#include "lwip/apps/sntp.h"
+#include "lwip/inet.h"
 
 namespace timekeeping {
-    Clock::Clock(time_t time) {
-        Set(time);
+    void Clock::InitSNTP() {
+        ESP_LOGI(TAG_, "Initialising SNTP");
+        sntp_setoperatingmode(SNTP_OPMODE_POLL);
+        sntp_setservername(0, ntp_server_name_);
+        sntp_init();
+        ESP_LOGI(
+            TAG_,
+            "Started SNTP client. Polling with interval %d ms. Using server %s.",
+            sntp_get_sync_interval(),
+            ntp_server_name_
+        );
+    }
+
+    Clock::Clock(const char* server) {
+        ntp_server_name_ = server;
+        InitSNTP();
     }
 
     int Clock::Hour() {
-        return (last_time_ / 3600) % 24;
+        return (time_ / 3600) % 24;
     }
 
     int Clock::Minute() {
-        return (last_time_ / 60) % 60;
+        return (time_ / 60) % 60;
     }
 
     int Clock::Second() {
-        return last_time_ % 60;
-    }
-
-    void Clock::Set(time_t time) {
-        last_time_ = time;
-        last_millis_ = esp_timer_get_time() / 1000UL;
+        return time_ % 60;
     }
 
     time_t Clock::Now() {
-        // Calculate number of milliseconds passed since last call and
-        // use this to calculate increase in time.
-
-        int diff = (esp_timer_get_time() / 1000UL) - last_millis_;
-        last_millis_ = esp_timer_get_time() / 1000UL;
-        last_time_ += diff / 1000UL;
-
-        return last_time_;
+        time(&time_);
+        return time_;
     }
 }

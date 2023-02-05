@@ -3,7 +3,8 @@
 
 #include "wifi_init.hpp"
 
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "esp_event.h"
 #include "esp_log.h"
@@ -266,4 +267,12 @@ void network_init() {
     );
 
     ESP_LOGI(TAG, "Finished network configuration");
+}
+
+const char* get_ntp_server() {
+    // Currently, ntp server is retrieved by DHCP so we just use
+    // preprocessor deffinitions. This should be updated in the future
+    // to get NTP server from DHCP or alike.
+
+    return CONFIG_NTP_SERVER;
 }

@@ -6,15 +6,22 @@
 
 #include <time.h>
 
+#include "lwip/inet.h"
+
 namespace timekeeping {
     class Clock
     {
     private:
-        int last_millis_;
-        time_t last_time_;
+        time_t time_;
+        const char* ntp_server_name_;
+        const char TAG_[6] = "CLOCK";
+
+        // Initialise SNTP
+        void InitSNTP();
+
     public:
-        // Start the clock at the given time
-        Clock(time_t time);
+        // Start the clock and sync with the specified NTP server
+        Clock(const char* server);
 
         // Get the hour value of the clock.
         // To get the current hour, first make sure to update the
@@ -30,9 +37,6 @@ namespace timekeeping {
         // To get the current second, first make sure to update the
         // clock by calling Now()
         int Second();
-
-        // Set the clock to a given time
-        void Set(time_t time);
 
         // Get the current time now
         time_t Now();

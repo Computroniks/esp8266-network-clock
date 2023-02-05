@@ -24,4 +24,10 @@ menu "Network Clock Config"
         prompt "mDNS Instance name"
         help
             Value to use as mDNS instance name
+    config NTP_SERVER
+        string
+        default "pool.ntp.org"
+        prompt "NTP Server"
+        help
+            The NTP server to use when synchronising clock
 endmenu

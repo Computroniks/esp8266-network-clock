@@ -56,4 +56,7 @@ void init_non_volatile_storage();
 // Provision this device
 void network_init();
 
+// Get the currently configured NTP server
+const char* get_ntp_server();
+
 #endif // MAIN_WIFI_INIT_H_

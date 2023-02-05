@@ -70,7 +70,7 @@ extern "C" void app_main() {
     show_startup_info();
     network_init();
 
-    timekeeping::Clock clock(1675512811);
+    timekeeping::Clock clock(get_ntp_server());
     for (int i = 60; i >= 0; i--) {
         ESP_LOGI("APP_MAIN", "Restarting in %d seconds...\n", i);
         clock.Now();
