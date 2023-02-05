@@ -1,11 +1,11 @@
 // SPDX-FileCopyrightText: 2023 Matthew Nickson <mnickson@sidingsmedia.com>
 // SPDX-License-Identifier: MIT
 
+#include "esp_log.h"
+#include "esp_spi_flash.h"
+#include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_log.h"
-#include "esp_system.h"
-#include "esp_spi_flash.h"
 #include "sdkconfig.h"
 
 #include "timekeeping/clock.hpp"
