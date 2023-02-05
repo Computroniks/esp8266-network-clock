@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 Matthew Nickson <mnickson@sidingsmedia.com>
 # SPDX-License-Identifier: MIT
 
-idf_component_register(SRCS "main.cpp" INCLUDE_DIRS ".")
+idf_component_register(SRCS "main.cpp" "wifi_init.cpp" INCLUDE_DIRS ".")
 
 set(PRJ_VERSION_MAJOR 0)
 set(PRJ_VERSION_MINOR 1)

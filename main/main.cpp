@@ -6,8 +6,10 @@
 #include "esp_log.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
+#include "sdkconfig.h"
 
 #include "timekeeping/clock.hpp"
+#include "wifi_init.hpp"
 
 // Output system information to the logging interface
 void show_startup_info() {
@@ -64,9 +66,12 @@ void show_startup_info() {
 }
 
 extern "C" void app_main() {
+    vTaskDelay(CONFIG_STARTUP_DELAY / portTICK_PERIOD_MS);
     show_startup_info();
+    network_init();
+
     timekeeping::Clock clock(1675512811);
-    for (int i = 10; i >= 0; i--) {
+    for (int i = 60; i >= 0; i--) {
         ESP_LOGI("APP_MAIN", "Restarting in %d seconds...\n", i);
         clock.Now();
         ESP_LOGI(

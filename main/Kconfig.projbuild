@@ -1,0 +1,27 @@
+menu "Network Clock Config"
+    config SOFTAP_SSID_PREFIX
+        string
+        default "PROV_"
+        prompt "Prefix for softAP SSID"
+        help
+            This defines the prefix to use for the softAP SSID
+    config STARTUP_DELAY
+        int
+        default 0
+        prompt "Startup delay"
+        help
+            The amount of time in milliseconds that the device should
+            wait before starting to configure its self.
+    config MDNS_HOSTNAME
+        string
+        default "networkclock"
+        prompt "mDNS Hostname"
+        help
+            Hostname to use for mDNS
+    config MDNS_INTANCE_NAME
+        string
+        default "Network Clock"
+        prompt "mDNS Instance name"
+        help
+            Value to use as mDNS instance name
+endmenu
