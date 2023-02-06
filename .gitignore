@@ -47,8 +47,6 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 build/
-# We want the root Makefile
-!/Makefile
 
 # Config files
 sdkconfig
