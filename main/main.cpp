@@ -6,10 +6,40 @@
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/queue.h"
 #include "sdkconfig.h"
 
+#include "display/tm1637.hpp"
 #include "timekeeping/clock.hpp"
 #include "wifi_init.hpp"
+
+QueueHandle_t display_queue;
+
+void task_clock(void* arg) {
+    timekeeping::Clock clock(get_ntp_server());
+
+    // Some buffers for sending message to display
+    char msg[4];
+
+    for (;;) {
+        clock.Now();
+        msg[0] = (clock.Hour() / 10) % 10;
+        msg[1] = clock.Hour() % 10;
+        msg[2] = (clock.Minute() / 10) % 10;
+        msg[3] = clock.Minute() % 10;
+        xQueueSend(display_queue, msg, 0);
+        ESP_LOGI(
+            "TIME", "%d:%d:%d",
+            clock.Hour(), clock.Minute(), clock.Second()
+        );
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+void task_display(void* arg) {
+    display::TM1637 disp(0, 2);
+    disp.WaitForMsg(&display_queue);
+}
 
 // Output system information to the logging interface
 void show_startup_info() {
@@ -70,17 +100,8 @@ extern "C" void app_main() {
     show_startup_info();
     network_init();
 
-    timekeeping::Clock clock(get_ntp_server());
-    for (int i = 60; i >= 0; i--) {
-        ESP_LOGI("APP_MAIN", "Restarting in %d seconds...\n", i);
-        clock.Now();
-        ESP_LOGI(
-            "TIME", "Formatted time %d:%d:%d",
-            clock.Hour(), clock.Minute(), clock.Second()
-        );
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
+    display_queue = xQueueCreate(10, sizeof(char[5]));
 
-    ESP_LOGI("APP_MAIN", "Restarting now");
-    esp_restart();
+    xTaskCreate(task_clock, "clock", 2048, NULL, 10, NULL);
+    xTaskCreate(task_display, "display", 2048, NULL, 10, NULL);
 }
