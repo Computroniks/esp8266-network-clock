@@ -5,8 +5,6 @@
 
 #include "esp_log.h"
 
-namespace display {
-    Segment::Segment(int len) {
-        max_chars_ = len;
-    }
+Segment::Segment(int len) {
+    max_chars_ = len;
 }

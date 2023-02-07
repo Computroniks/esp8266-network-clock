@@ -16,7 +16,7 @@
 QueueHandle_t display_queue;
 
 void task_clock(void* arg) {
-    timekeeping::Clock clock(get_ntp_server());
+    Clock clock(get_ntp_server());
 
     // Some buffers for sending message to display
     char msg[4];
@@ -37,7 +37,7 @@ void task_clock(void* arg) {
 }
 
 void task_display(void* arg) {
-    display::TM1637 disp(0, 2);
+    TM1637 disp(0, 2);
     disp.WaitForMsg(&display_queue);
 }
 
