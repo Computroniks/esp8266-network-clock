@@ -10,9 +10,14 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+#include "freertos/semphr.h"
 
 // Delay used for hardware timer in us (microseconds)
-#define CLK_DELAY 50
+// Must be > 50
+#define CLK_DELAY 51
+
+// Maximum time to wait before failing send
+#define MAX_SEND_TIMEOUT 200
 
 void TM1637::Init() {
     ESP_LOGI(TAG_, "Initialising TM1637");
@@ -42,18 +47,16 @@ void TM1637::SendByte(int b) {
     counter_ = 0;
 
     // Task notification setup
-    const TickType_t max_block_time = pdMS_TO_TICKS(200); // Timeout 200ms
-    task_notify_ = xTaskGetCurrentTaskHandle();
-
+    const TickType_t max_block_time = pdMS_TO_TICKS(MAX_SEND_TIMEOUT);
 
     // Set of the timer
     hw_timer_init(SendByteISR, this);
     hw_timer_alarm_us(CLK_DELAY, true);
 
     // Wait until finished writing to display
-    int result = ulTaskNotifyTake(pdTRUE, max_block_time);
+    int result = xSemaphoreTake(write_semaphore_, max_block_time);
 
-    if (result != 1) {
+    if (result != pdTRUE) {
         ESP_LOGE(
             TAG_,
             "Failed to write byte to display. Function timed out after 200ms"
@@ -72,20 +75,17 @@ void TM1637::SendByteISR(void* arg) {
     case 1: // Clock low, set data bit
         gpio_set_level(t->dio_, t->data_ & 0x01);
         t->data_ = t->data_ >> 1;
-
         break;
     case 2: // Clock rising
         gpio_set_level(t->clk_, 1);
-        if (t->counter_ > 24) {
-
+        // 3 * 8 bits + extra bit for ACK
+        if (t->counter_ > 27) {
+            // We have sent the last bit
             BaseType_t higher_priority_task_woken = pdFALSE;
-            // We have set last bit
-            vTaskNotifyGiveFromISR(
-                t->task_notify_,
+            xSemaphoreGiveFromISR(
+                t->write_semaphore_,
                 &higher_priority_task_woken
             );
-
-            t->task_notify_ = NULL;
             portEND_SWITCHING_ISR(higher_priority_task_woken);
         }
         break;
@@ -94,34 +94,101 @@ void TM1637::SendByteISR(void* arg) {
 }
 
 void TM1637::Start() {
+    counter_ = 0;
 
+    // Task notification setup
+    const TickType_t max_block_time = pdMS_TO_TICKS(MAX_SEND_TIMEOUT);
+
+    // Set of the timer
+    hw_timer_init(StartISR, this);
+    hw_timer_alarm_us(CLK_DELAY, true);
+
+    // Wait until finished writing to display
+    int result = xSemaphoreTake(write_semaphore_, max_block_time);
+
+    if (result != pdTRUE) {
+        ESP_LOGE(
+            TAG_,
+            "Failed to send start. Function timed out after 200ms"
+        );
+    }
+
+    hw_timer_deinit();
 }
 
 void TM1637::StartISR(void* arg) {
-
+    TM1637* t = (TM1637*)arg;
+    if (t->counter_ % 2 == 0) {
+        gpio_set_level(t->dio_, 0);
+    }
+    else {
+        // Note, there is no need to set clock to low here as this is
+        // done first thing when sending a byte. All we do here is give
+        // back the semaphore to continue execution.
+        BaseType_t higher_priority_task_woken = pdFALSE;
+        xSemaphoreGiveFromISR(
+            t->write_semaphore_,
+            &higher_priority_task_woken
+        );
+        portEND_SWITCHING_ISR(higher_priority_task_woken);
+    }
+    t->counter_++;
 }
 
 void TM1637::Stop() {
     counter_ = 0;
 
+    // Task notification setup
+    const TickType_t max_block_time = pdMS_TO_TICKS(MAX_SEND_TIMEOUT);
 
+    // Set of the timer
+    hw_timer_init(StopISR, this);
+    hw_timer_alarm_us(CLK_DELAY, true);
+
+    // Wait until finished writing to display
+    int result = xSemaphoreTake(write_semaphore_, max_block_time);
+
+    if (result != pdTRUE) {
+        ESP_LOGE(
+            TAG_,
+            "Failed to send start. Function timed out after 200ms"
+        );
+    }
+
+    hw_timer_deinit();
 }
 
 void TM1637::StopISR(void* arg) {
-    switch (counter_) {
-    case 0:
-        /* code */
-        break;
+    TM1637* t = (TM1637*)arg;
 
-    default:
+    switch (t->counter_ % 4) {
+    case 0: // Clock falling
+        gpio_set_level(t->clk_, 0);
+        break;
+    case 1: // Clock low, data is still low from ack
+        break;
+    case 2: // Clock goes high
+        gpio_set_level(t->clk_, 1);
+        break;
+    case 3: // Clock is now high, data can go high
+        gpio_set_level(t->dio_, 1);
+        BaseType_t higher_priority_task_woken = pdFALSE;
+        xSemaphoreGiveFromISR(
+            t->write_semaphore_,
+            &higher_priority_task_woken
+        );
+        portEND_SWITCHING_ISR(higher_priority_task_woken);
         break;
     }
-
+    t->counter_++;
 }
 
 TM1637::TM1637(int dio, int clk):Segment(6) {
     dio_ = (gpio_num_t)dio;
     clk_ = (gpio_num_t)clk;
+
+    // Create our semaphore that will be used later
+    write_semaphore_ = xSemaphoreCreateBinary();
 
     Init();
 }

@@ -10,6 +10,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+#include "freertos/semphr.h"
 
 class TM1637: Segment
 {
@@ -29,8 +30,8 @@ private:
     // Current data that is being sent to the IC
     int data_;
 
-    // Task to notify on transmit complete
-    TaskHandle_t task_notify_ = NULL;
+    // Used to indicate when ISR has finished writing to IC
+    SemaphoreHandle_t write_semaphore_;
 
     // Supported values for display
     //
@@ -76,13 +77,13 @@ private:
 
     // Callback for timer.
     // This is the method that actually writes the start bits to the device
-    void StartISR(void* arg);
+    static void StartISR(void* arg);
 
     // Send stop signal to TM1637
     void Stop();
 
     // Callback for stop timer
-    void StopISR(void* arg);
+    static void StopISR(void* arg);
 
 public:
     // Constructor. Set pins for data I/O and clock
