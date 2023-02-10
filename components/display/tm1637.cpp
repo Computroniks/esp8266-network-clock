@@ -78,8 +78,7 @@ void TM1637::SendByteISR(void* arg) {
         break;
     case 2: // Clock rising
         gpio_set_level(t->clk_, 1);
-        // 3 * 8 bits + extra bit for ACK
-        if (t->counter_ > 27) {
+        if (t->counter_ > 24) {
             // We have sent the last bit
             BaseType_t higher_priority_task_woken = pdFALSE;
             xSemaphoreGiveFromISR(
@@ -203,13 +202,10 @@ void TM1637::Write(char* msg) {
 
     // Now send characters
     for (int i = 0; i < sizeof(&msg) / sizeof(msg[0]); i++) {
-        ESP_LOGI(TAG_, "i = %d", i);
-        ESP_LOGI(TAG_, "msg[%d] = %d", i, (int)msg[i]);
-        ESP_LOGI(TAG_, "data = %d", digits_[(int)msg[i]]);
         /* TODO: Should probably check it is a valid char */
         if (i == 1) {
             // Include colon between hours and minutes
-            SendByte(digits_[(int)msg[i]] & digits_[17]);
+            SendByte(digits_[(int)msg[i]] | digits_[16]);
         }
         else {
             SendByte(digits_[(int)msg[i]]);
