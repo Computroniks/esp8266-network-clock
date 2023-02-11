@@ -1,10 +1,9 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: template
+Upstream-Name: esp8266-network-clock
 Upstream-Contact: Matthew Nickson <mnickson@sidingsmedia.com>
 Source: 
 
-# Sample paragraph, commented out:
-#
-# Files: src/*
-# Copyright: $YEAR $NAME <$CONTACT>
-# License: ...
+
+Files: large-7-segment-clock/*
+Copyright: 2023 Matthew Nickson <mnickson@sidingsmedia.com>
+License: CERN-OHL-P-2.0+
